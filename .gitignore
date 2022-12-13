@@ -1,0 +1,7 @@
+# Ignore all text files
+*.txt
+*.csv
+*.log
+
+# Ignore drivers folder
+drivers
