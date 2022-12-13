@@ -1,22 +1,3 @@
-'''
-Copia de seguridad del 27-11-2022, previo a incrementar la cantidad de datos capturados.
-
-El programa actual recoge los siguientes datos de un listado de URLs con vuelos de IDA y VUELTA
-
-vuelo = {
-                "num_ida" : num_ida,
-                "fecha_ida" : fecha_ida,
-                "num_vuelta" : num_vuelta,
-                "fecha_vuelta" : fecha_vuelta,
-                "fecha_busqueda" : datetime.datetime.now(),
-                "precio" : precio,
-                "vendedor" : vendedor,
-            }
-
-Los datos son guardados en un CSV.
-
-'''
-
 import os
 import selenium.webdriver as webdriver
 from selenium.webdriver.firefox.service import Service
@@ -24,10 +5,13 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 
 from CSV import CSV
-import datetime
+from utils import Utils
+
+from datetime import datetime
 import time
 import random
 
+#browser = None
 
 def randomTime(min, max):
     tiempo = random.uniform(min, max)
@@ -38,7 +22,7 @@ def randomTime(min, max):
 def inicializarBrowser():
     # intialzie chrome service
     user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0'
-    firefox_driver = os.path.join(os.getcwd(), 'Drivers', 'geckodriver.exe')
+    firefox_driver = os.path.join(os.getcwd(), '..\Drivers', 'geckodriver.exe')
     firefox_service = Service(firefox_driver)
     firefox_options = Options()
     firefox_options.set_preference("browser.privatebrowsing.autostart", user_agent)
@@ -78,32 +62,58 @@ def navegar_y_descargar_datos(url):
             #randomTime(1,2)# esperar a que se cargue
 
             # RECOPILAR DATOS
-            num_ida = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[1]/div[2]/div/div/div[1]/span").text
+            num_vuelo = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[1]/div[2]/div/div/div[1]/span").text
             #print(num_ida)
-            num_vuelta = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[2]/div[2]/div/div/div[1]/span").text
-            #print(num_vuelta)
+            fecha_vuelo = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[1]/div[1]/div/h4[2]").text            #print(num_vuelta)
             precio = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[4]/div[1]/div[2]/div/div[2]/span[2]").text
             #print(precio)
             vendedor = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[4]/div[1]/div[1]/span").text
             #print(vendedor)
-            fecha_ida = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[1]/div[1]/div/h4[2]").text
+            #fecha_ida = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[1]/div[1]/div/h4[2]").text
             #print(fecha_ida)
-            fecha_vuelta = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[2]/div[1]/div/h4[2]").text
+            #fecha_vuelta = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[2]/div[1]/div/h4[2]").text
             #print(fecha_vuelta)
+            
+            # GENERAR METADATOS
+            fecha_busqueda = datetime.now()
+            anyo_busqueda = fecha_busqueda.year
+            mes_busqueda = fecha_busqueda.month
+            dia_semana_busqueda = fecha_busqueda.weekday() # L=0; M=1; X=2; J=3; V=4; S=5; D=6
+            dia_mes_busqueda = fecha_busqueda.day
+            hora_busqueda = fecha_busqueda.hour
+            progreso_mes = Utils.calcular_progreso_mes()
+            progreso_semana = Utils.calcular_progreso_semana()
+            progreso_dia = Utils.calcular_progreso_dia()
+            
+            # Dia de la semana busqueda --> progreso de la semana.
+            #   L,M,X,J,V,S,D
+            
+            # Hora del dia busqueda --> progreso del dia.
+            #   1/24 ... 24/24
+            
+            # Dia de mes busqueda --> progreso del mes.
+            #   1/31 ... 31/31
+            
 
             vuelo = {
-                "num_ida" : num_ida,
-                "fecha_ida" : fecha_ida,
-                "num_vuelta" : num_vuelta,
-                "fecha_vuelta" : fecha_vuelta,
-                "fecha_busqueda" : datetime.datetime.now(),
+                "num_vuelo" : num_vuelo,
+                "fecha_vuelo" : fecha_vuelo,
+                "fecha_busqueda" : datetime.now(),
+                "anyo_busqueda" : anyo_busqueda,
+                "mes_busqueda" : mes_busqueda,
+                "dia_semana_busqueda" : dia_semana_busqueda,
+                "dia_mes_busqueda" : dia_mes_busqueda,
+                "hora_busqueda" : hora_busqueda,
+                "progreso_mes" : progreso_mes,
+                "progreso_semana" : progreso_semana,
+                "progreso_dia" : progreso_dia,
                 "precio" : precio,
                 "vendedor" : vendedor,
             }
 
             print(vuelo)
 
-            CSV.escribir_vuelo(vuelo)
+            CSV.escribir_vuelo(vuelo, "test.csv")
 
         except:
             print("ERROR al intentar obtener elementos del HTML.")
@@ -137,7 +147,7 @@ def navegar_y_descargar_datos(url):
 
 
 # Carga de URLs a scrapear de fichero
-f = open("urls.txt", "r")
+f = open("..\\data\\urls.txt", "r")
 lineas = f.readlines()
 f.close()
 lista_url_fallidas = []

@@ -2,8 +2,8 @@ import csv
 
 
 class CSV:
-    def escribir_vuelo(vuelo):
-        with open('vuelos.csv', 'a', encoding='UTF8', newline='') as f:
+    def escribir_vuelo(vuelo, filename = 'vuelos.csv'):
+        with open('..\\data\\' + filename, 'a', encoding='UTF8', newline='') as f:
             writer = csv.writer(f)
             writer.writerows([vuelo.values()])
                 
