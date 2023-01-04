@@ -10,6 +10,7 @@ from utils import Utils
 from datetime import datetime
 import time
 import random
+import traceback
 
 #browser = None
 
@@ -58,7 +59,7 @@ def navegar_y_descargar_datos(url):
             # DESPLEGAR ELEMENTOS
             browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[1]/button").click()
             randomTime(0.5,1)# esperar a que se cargue
-            browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[2]/button").click()
+            #browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[2]/button").click()
             #randomTime(1,2)# esperar a que se cargue
 
             # RECOPILAR DATOS
@@ -73,7 +74,20 @@ def navegar_y_descargar_datos(url):
             #print(fecha_ida)
             #fecha_vuelta = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[2]/div[1]/div/h4[2]").text
             #print(fecha_vuelta)
-            
+            aeropuerto_salida = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[1]/button/div[2]/div/div[2]/div[1]/span[2]/div/span").text
+            aeropuerto_destino = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[1]/button/div[2]/div/div[2]/div[3]/span[2]/div/span").text
+            hora_salida = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[1]/button/div[2]/div/div[2]/div[1]/span[1]/div/span").text
+            hora_llegada = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[1]/button/div[2]/div/div[2]/div[3]/span[1]/div/span").text
+            # if escala:
+            try:
+                aeropuerto_escala = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[1]/button/div[2]/div/div[2]/div[2]/div[2]/div/span/div/span").text
+                tiempo_escala = browser.find_element("xpath", "/html/body/div[2]/div[4]/div/div[2]/div/div[3]/div[1]/div[1]/div[2]/div/div/div[3]/div[1]/span").text
+                print("Vuelo con escala...")
+            except:
+                aeropuerto_escala = None
+                tiempo_escala = None
+                print("Vuelo sin escala...")
+                
             # GENERAR METADATOS
             fecha_busqueda = datetime.now()
             anyo_busqueda = fecha_busqueda.year
@@ -97,7 +111,13 @@ def navegar_y_descargar_datos(url):
 
             vuelo = {
                 "num_vuelo" : num_vuelo,
+                "aeropuerto_salida" : aeropuerto_salida,
+                "aeropuerto_destino" : aeropuerto_destino,
+                "aeropuerto_escala" : aeropuerto_escala,
+                "tiempo_escala" : tiempo_escala,
                 "fecha_vuelo" : fecha_vuelo,
+                "hora_salida" : hora_salida,
+                "hora_llegada" : hora_llegada,
                 "fecha_busqueda" : datetime.now(),
                 "anyo_busqueda" : anyo_busqueda,
                 "mes_busqueda" : mes_busqueda,
@@ -115,8 +135,9 @@ def navegar_y_descargar_datos(url):
 
             CSV.escribir_vuelo(vuelo, "test.csv")
 
-        except:
+        except Exception:
             print("ERROR al intentar obtener elementos del HTML.")
+            print(traceback.format_exc())
 
             # ANALISIS DE FALLA: COMPROBACION DE VUELO NO EXISTENTE
             try:
@@ -147,7 +168,7 @@ def navegar_y_descargar_datos(url):
 
 
 # Carga de URLs a scrapear de fichero
-f = open("..\\data\\urls.txt", "r")
+f = open("..\\data\\urls_test.txt", "r")
 lineas = f.readlines()
 f.close()
 lista_url_fallidas = []
