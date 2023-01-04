@@ -5,3 +5,4 @@
 
 # Ignore drivers folder
 drivers
+__pycache__
